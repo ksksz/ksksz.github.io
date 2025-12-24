@@ -2,7 +2,7 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 function saveCart() {
     localStorage.setItem("cart", JSON.stringify(cart));
-    updateCartBadge(); // Обновляем бейджик на всех страницах
+    updateCartBadge();
 }
 
 function addToCart(item) {
@@ -15,15 +15,13 @@ function addToCart(item) {
     }
 
     saveCart();
-    alert("Товар добавлен в корзину ✅");
+    showToast("Товар добавлен в корзину ✅");
 }
 
-// Подсчёт общего количества товаров в корзине
 function getCartTotalItems() {
     return cart.reduce((sum, item) => sum + item.qty, 0);
 }
 
-// Обновление всех бейджиков с количеством товаров
 function updateCartBadge() {
     const badgeElements = document.querySelectorAll(".cart-badge");
     const totalItems = getCartTotalItems();
@@ -38,7 +36,19 @@ function updateCartBadge() {
     });
 }
 
-// Обновляем бейджик при загрузке страницы
+function changeQty(index, delta) {
+    cart[index].qty += delta;
+    if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+    }
+    saveCart();
+}
+
+function removeItem(index) {
+    cart.splice(index, 1);
+    saveCart();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     updateCartBadge();
 });
