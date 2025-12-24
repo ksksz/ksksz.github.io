@@ -3,6 +3,11 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 function saveCart() {
     localStorage.setItem("cart", JSON.stringify(cart));
     updateCartBadge();
+
+    // Обновляем кнопки в каталоге (на index.html)
+    if (typeof window.updateCatalogButtons === "function") {
+        window.updateCatalogButtons();
+    }
 }
 
 function addToCart(item) {
@@ -73,4 +78,8 @@ function removeItem(index) {
 
 document.addEventListener("DOMContentLoaded", () => {
     updateCartBadge();
+
+    if (typeof window.updateCatalogButtons === "function") {
+        window.updateCatalogButtons();
+    }
 });
