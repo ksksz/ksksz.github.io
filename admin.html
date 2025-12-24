@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Админ-панель — Каталог</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f3ff 0%, #e9e4ff 100%);
+      color: #222;
+      padding: 20px 15px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(100, 80, 200, 0.12);
+      overflow: hidden;
+    }
+
+    h1 {
+      padding: 24px 28px;
+      background: #7b61ff;
+      color: white;
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    .warning {
+      padding: 16px 28px;
+      background: #fff3cd;
+      color: #856404;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #ffeeba;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8f7ff;
+      color: #5a4b99;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    td input:focus {
+      outline: none;
+      border-color: #7b61ff;
+      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    }
+
+    /* Обновлённые ширины колонок — ID стал заметно шире */
+    th:nth-child(1), td:nth-child(1) { width: 9%; min-width: 90px; }   /* ID — шире! */
+    th:nth-child(2), td:nth-child(2) { width: 22%; }                   /* Название */
+    th:nth-child(3), td:nth-child(3) { width: 10%; }                   /* Цена */
+    th:nth-child(4), td:nth-child(4) { width: 27%; }                   /* Описание */
+    th:nth-child(5), td:nth-child(5) { width: 20%; }                   /* Изображение */
+    th:nth-child(6), td:nth-child(6) { width: 8%;  }                   /* Остаток */
+    th:nth-child(7), td:nth-child(7) { width: 4%;  min-width: 110px; } /* Действия */
+
+    .actions {
+      text-align: center;
+    }
+
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .delete-btn {
+      background: #ff4d4f;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background: #d9363e;
+    }
+
+    .add-btn, .save-btn {
+      display: block;
+      margin: 24px auto;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .add-btn {
+      background: #40c4ff;
+      color: white;
+    }
+
+    .add-btn:hover {
+      background: #00b0ff;
+    }
+
+    .save-btn {
+      background: #4caf50;
+      color: white;
+      max-width: 400px;
+    }
+
+    .save-btn:hover {
+      background: #43a047;
+    }
+
+    @media (max-width: 900px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
+      tr {
+        border: 1px solid #ddd;
+        margin-bottom: 16px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+      }
+
+      td:before {
+        position: absolute;
+        top: 14px;
+        left: 16px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: #555;
+      }
+
+      td:nth-of-type(1):before { content: "ID"; }
+      td:nth-of-type(2):before { content: "Название"; }
+      td:nth-of-type(3):before { content: "Цена"; }
+      td:nth-of-type(4):before { content: "Описание"; }
+      td:nth-of-type(5):before { content: "Изображение"; }
+      td:nth-of-type(6):before { content: "Остаток"; }
+      td:nth-of-type(7):before { content: "Действия"; }
+
+      .actions {
+        text-align: center;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Управление каталогом товаров</h1>
+
+  <div class="warning">
+    После внесения изменений нажмите «Скачать catalog.json» и замените файл в репозитории GitHub
+  </div>
+
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название</th>
+      <th>Цена ₽</th>
+      <th>Описание</th>
+      <th>Ссылка на изображение</th>
+      <th>Остаток</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody id="catalog-body"></tbody>
+  </table>
+
+  <button class="add-btn" onclick="addNewItem()">+ Добавить новый товар</button>
+  <button class="save-btn" onclick="downloadCatalog()">Скачать обновлённый catalog.json</button>
+</div>
+
+<script>
+  // Тот же скрипт, что и раньше (без изменений)
+  let catalog = [];
+
+  fetch('catalog.json')
+          .then(res => res.json())
+          .then(data => {
+            catalog = data;
+            renderTable();
+          })
+          .catch(err => {
+            console.error(err);
+            alert('Не удалось загрузить catalog.json');
+          });
+
+  function renderTable() {
+    const tbody = document.getElementById('catalog-body');
+    tbody.innerHTML = '';
+
+    catalog.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+      <td><input type="number" value="${item.id}" onchange="update(${index}, 'id', this.value)"></td>
+      <td><input type="text" value="${item.title}" onchange="update(${index}, 'title', this.value)"></td>
+      <td><input type="number" value="${item.price}" onchange="update(${index}, 'price', this.value)"></td>
+      <td><input type="text" value="${item.description}" onchange="update(${index}, 'description', this.value)"></td>
+      <td><input type="text" value="${item.image}" onchange="update(${index}, 'image', this.value)"></td>
+      <td><input type="number" value="${item.stock}" onchange="update(${index}, 'stock', this.value)"></td>
+      <td class="actions">
+        <button class="delete-btn" onclick="deleteItem(${index})">Удалить</button>
+      </td>
+    `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function update(index, field, value) {
+    if (['id', 'price', 'stock'].includes(field)) {
+      value = parseInt(value) || 0;
+    }
+    catalog[index][field] = value;
+  }
+
+  function deleteItem(index) {
+    if (!confirm('Удалить товар?')) return;
+
+    catalog.splice(index, 1);
+    catalog.forEach((item, i) => item.id = i + 1);
+    renderTable();
+  }
+
+  function addNewItem() {
+    const maxId = catalog.length ? Math.max(...catalog.map(i => i.id)) : 0;
+    catalog.push({
+      id: maxId + 1,
+      title: "Новый товар",
+      price: 0,
+      description: "Краткое описание",
+      image: "https://via.placeholder.com/400x300",
+      stock: 0
+    });
+    renderTable();
+  }
+
+  function downloadCatalog() {
+    const jsonStr = JSON.stringify(catalog, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "catalog.json";
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert("Файл скачан!\nЗагрузите его в репозиторий на GitHub.");
+  }
+</script>
+</body>
+</html>
