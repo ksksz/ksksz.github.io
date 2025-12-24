@@ -1,6 +1,23 @@
 fetch("catalog.json")
     .then(res => res.json())
-    .then(items => {
+    .then(originalItems => {
+        let items = originalItems;
+
+        // Если есть сохранённые актуальные остатки — используем их
+        const savedStock = localStorage.getItem("catalogStock");
+        if (savedStock) {
+            try {
+                const parsedStock = JSON.parse(savedStock);
+                // Обновляем только поле stock, остальные данные берём из оригинального json
+                items = originalItems.map(item => {
+                    const saved = parsedStock.find(s => s.id === item.id);
+                    return saved ? { ...item, stock: saved.stock } : item;
+                });
+            } catch (e) {
+                console.warn("Повреждённые данные catalogStock в localStorage", e);
+            }
+        }
+
         const catalog = document.getElementById("catalog");
 
         // Функция обновления всех кнопок/контроллеров в каталоге
@@ -45,13 +62,10 @@ fetch("catalog.json")
                 }
             });
 
-            // Назначаем обработчики после обновления DOM
             attachButtonHandlers();
         }
 
-        // Назначение обработчиков кликов
         function attachButtonHandlers() {
-            // Кнопка "В корзину"
             document.querySelectorAll(".add-to-cart-btn:not(.disabled)").forEach(btn => {
                 btn.onclick = () => {
                     const itemId = parseInt(btn.dataset.id);
@@ -63,7 +77,6 @@ fetch("catalog.json")
                 };
             });
 
-            // Кнопка "+"
             document.querySelectorAll(".qty-plus").forEach(btn => {
                 btn.onclick = () => {
                     const itemId = parseInt(btn.dataset.id);
@@ -75,7 +88,6 @@ fetch("catalog.json")
                 };
             });
 
-            // Кнопка "−"
             document.querySelectorAll(".qty-minus").forEach(btn => {
                 btn.onclick = () => {
                     const itemId = parseInt(btn.dataset.id);
@@ -122,9 +134,11 @@ fetch("catalog.json")
       `;
         });
 
-        // Первичное назначение обработчиков
         attachButtonHandlers();
-
-        // Делаем функцию обновления доступной для cart.js
         window.updateCatalogButtons = updateAllButtons;
+    })
+    .catch(err => {
+        console.error("Ошибка загрузки каталога:", err);
+        document.getElementById("catalog").innerHTML =
+            '<p style="text-align:center; color:#888; padding:60px 20px;">Не удалось загрузить товары...</p>';
     });

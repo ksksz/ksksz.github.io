@@ -6,7 +6,7 @@ const totalDiv = document.getElementById("total");
 
 let catalogData = [];
 
-// Загружаем актуальные данные о stock
+// Загружаем сохранённые остатки, если есть
 const savedStock = localStorage.getItem("catalogStock");
 if (savedStock) {
     catalogData = JSON.parse(savedStock);
@@ -16,7 +16,8 @@ if (savedStock) {
         .then(data => {
             catalogData = data;
             localStorage.setItem("catalogStock", JSON.stringify(catalogData));
-        });
+        })
+        .catch(err => console.error("Не удалось загрузить catalog.json", err));
 }
 
 function renderCart() {
@@ -33,11 +34,12 @@ function renderCart() {
         const sum = item.qty * item.price;
         total += sum;
 
-        // Показываем остаток под названием товара
         const catalogItem = catalogData.find(i => i.id === item.id);
-        const stockInfo = catalogItem && catalogItem.stock > 0
-            ? `<small style="color:#777; display:block; margin-top:4px;">Осталось: ${catalogItem.stock} шт.</small>`
-            : `<small style="color:#ff6b9d; display:block; margin-top:4px; font-weight:600;">Нет в наличии</small>`;
+        const stockInfo = catalogItem
+            ? (catalogItem.stock > 0
+                ? `<small style="color:#777; display:block; margin-top:4px;">Осталось: ${catalogItem.stock} шт.</small>`
+                : `<small style="color:#ff6b9d; display:block; margin-top:4px; font-weight:600;">Нет в наличии</small>`)
+            : `<small style="color:#888;">Данные о наличии отсутствуют</small>`;
 
         cartDiv.innerHTML += `
       <div class="cart-item">
@@ -82,6 +84,15 @@ function sendOrder() {
         return;
     }
 
+    // Проверка остатков перед отправкой
+    for (const cartItem of cart) {
+        const catalogItem = catalogData.find(c => c.id === cartItem.id);
+        if (!catalogItem || catalogItem.stock < cartItem.qty) {
+            showToast(`Недостаточно товара "${cartItem.title}" в наличии!`);
+            return;
+        }
+    }
+
     let message = "🛒 *Новый заказ!*\n\n";
     let total = 0;
 
@@ -110,23 +121,28 @@ function sendOrder() {
             if (data.ok) {
                 showToast("Заказ отправлен! Спасибо ❤️");
 
-                // Уменьшаем остаток товаров после успешного заказа
+                // Уменьшаем остаток
                 cart.forEach(cartItem => {
                     const catalogItem = catalogData.find(c => c.id === cartItem.id);
                     if (catalogItem) {
-                        catalogItem.stock -= cartItem.qty;
-                        if (catalogItem.stock < 0) catalogItem.stock = 0;
+                        catalogItem.stock = Math.max(0, catalogItem.stock - cartItem.qty);
                     }
                 });
 
-                // Сохраняем обновлённый остаток
+                // Сохраняем актуальные остатки
                 localStorage.setItem("catalogStock", JSON.stringify(catalogData));
 
                 // Очищаем корзину
                 localStorage.removeItem("cart");
                 cart = [];
+
                 renderCart();
                 updateCartBadge();
+
+                // Можно добавить небольшую задержку перед переходом обратно
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1800);
             } else {
                 showToast("Ошибка отправки. Попробуйте позже ❌");
             }
