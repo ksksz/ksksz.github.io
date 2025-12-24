@@ -388,3 +388,59 @@ header {
     font-size: 18px;
     color: #5a4b99;
 }
+
+.delivery-section {
+    margin: 28px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(180, 160, 255, 0.15);
+    border: 1px solid rgba(180, 160, 255, 0.2);
+}
+
+.delivery-section h3 {
+    margin-bottom: 18px;
+    font-size: 19px;
+    color: #5a4b99;
+}
+
+.delivery-option {
+    display: block;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(240, 234, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delivery-option:hover {
+    background: rgba(240, 234, 255, 0.7);
+}
+
+.delivery-option input[type="radio"] {
+    margin-right: 12px;
+    accent-color: #7b61ff;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.option-price {
+    color: #7b61ff;
+    font-weight: 600;
+}
+
+.option-address {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+}

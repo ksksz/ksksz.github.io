@@ -1,12 +1,11 @@
-const BOT_TOKEN = "TELEGRAM_TOKEN_REMOVED"; // ← ОБЯЗАТЕЛЬНО замени!
-const CHAT_ID = "427675942";     // ← ОБЯЗАТЕЛЬНО замени!
+const BOT_TOKEN = "TELEGRAM_TOKEN_REMOVED"; // ← ОБЯЗАТЕЛЬНО замените!
+const CHAT_ID = "427675942";                                         // ← ОБЯЗАТЕЛЬНО замените!
 
 const cartDiv = document.getElementById("cart");
 const totalDiv = document.getElementById("total");
 
 let catalogData = [];
 
-// Загружаем сохранённые остатки, если есть
 const savedStock = localStorage.getItem("catalogStock");
 if (savedStock) {
     catalogData = JSON.parse(savedStock);
@@ -17,12 +16,39 @@ if (savedStock) {
             catalogData = data;
             localStorage.setItem("catalogStock", JSON.stringify(catalogData));
         })
-        .catch(err => console.error("Не удалось загрузить catalog.json", err));
+        .catch(err => console.error("Ошибка загрузки catalog.json:", err));
+}
+
+const DELIVERY_OPTIONS = {
+    "tomsk_delivery": {
+        name: "Доставка по Томску",
+        price: 150
+    },
+    "seversk_delivery": {
+        name: "Доставка по Северску",
+        price: 200
+    },
+    "pickup": {
+        name: "Самовывоз",
+        price: 0,
+        address: "г. Томск, ул. Мира, 48"
+    }
+};
+
+let selectedOption = "tomsk_delivery";
+
+function calculateSubtotal() {
+    return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+function calculateTotal() {
+    const option = DELIVERY_OPTIONS[selectedOption];
+    return calculateSubtotal() + (option ? option.price : 0);
 }
 
 function renderCart() {
     cartDiv.innerHTML = "";
-    let total = 0;
+    const subtotal = calculateSubtotal();
 
     if (!cart.length) {
         cartDiv.innerHTML = `<p class="empty-cart">Корзина пуста</p>`;
@@ -31,9 +57,7 @@ function renderCart() {
     }
 
     cart.forEach((item, index) => {
-        const sum = item.qty * item.price;
-        total += sum;
-
+        const itemSum = item.qty * item.price;
         const catalogItem = catalogData.find(i => i.id === item.id);
         const stockInfo = catalogItem
             ? (catalogItem.stock > 0
@@ -46,7 +70,7 @@ function renderCart() {
         <div class="cart-info">
           <h4>${item.title}${stockInfo}</h4>
           <div class="cart-price">
-            ${item.price.toLocaleString()} ₽ × ${item.qty} = ${sum.toLocaleString()} ₽
+            ${item.price.toLocaleString()} ₽ × ${item.qty} = ${itemSum.toLocaleString()} ₽
           </div>
         </div>
 
@@ -66,8 +90,32 @@ function renderCart() {
     `;
     });
 
-    totalDiv.innerHTML = `<h3>Итого: <strong>${total.toLocaleString()} ₽</strong></h3>`;
+    const option = DELIVERY_OPTIONS[selectedOption];
+    const deliveryCost = option ? option.price : 0;
+    const total = subtotal + deliveryCost;
+
+    totalDiv.innerHTML = `
+      <div style="margin-bottom:10px; font-size:16px; color:#555;">
+        Сумма товаров: ${subtotal.toLocaleString()} ₽
+      </div>
+      <div style="margin-bottom:12px; font-size:16px; color:#555;">
+        ${option.name}: ${deliveryCost.toLocaleString()} ₽
+        ${option.address ? `<br><small style="color:#666; font-size:14px;">${option.address}</small>` : ''}
+      </div>
+      <h3 style="margin-top:8px;">Итого: <strong>${total.toLocaleString()} ₽</strong></h3>
+    `;
 }
+
+function updateTotal() {
+    renderCart();
+}
+
+document.querySelectorAll('input[name="delivery"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        selectedOption = this.value;
+        updateTotal();
+    });
+});
 
 function sendOrder() {
     const name = document.getElementById("name").value.trim();
@@ -84,7 +132,6 @@ function sendOrder() {
         return;
     }
 
-    // Проверка остатков перед отправкой
     for (const cartItem of cart) {
         const catalogItem = catalogData.find(c => c.id === cartItem.id);
         if (!catalogItem || catalogItem.stock < cartItem.qty) {
@@ -93,16 +140,23 @@ function sendOrder() {
         }
     }
 
+    const option = DELIVERY_OPTIONS[selectedOption];
+    const deliveryCost = option.price;
+    const deliveryText = option.address
+        ? `${option.name} (адрес: ${option.address})`
+        : option.name;
+
     let message = "🛒 *Новый заказ!*\n\n";
-    let total = 0;
+    let subtotal = 0;
 
     cart.forEach(item => {
-        const sum = item.qty * item.price;
-        total += sum;
-        message += `• ${item.title} × ${item.qty} — ${sum.toLocaleString()} ₽\n`;
+        const itemSum = item.qty * item.price;
+        subtotal += itemSum;
+        message += `• ${item.title} × ${item.qty} — ${itemSum.toLocaleString()} ₽\n`;
     });
 
-    message += `\n💰 *Итого: ${total.toLocaleString()} ₽*`;
+    message += `\nПолучение: ${deliveryText} — ${deliveryCost.toLocaleString()} ₽`;
+    message += `\n\n💰 *Итого: ${(subtotal + deliveryCost).toLocaleString()} ₽*`;
     message += `\n\n👤 *Имя:* ${name}`;
     message += `\n📞 *Телефон:* ${phone}`;
     if (comment) message += `\n💬 *Комментарий:* ${comment}`;
@@ -121,7 +175,6 @@ function sendOrder() {
             if (data.ok) {
                 showToast("Заказ отправлен! Спасибо ❤️");
 
-                // Уменьшаем остаток
                 cart.forEach(cartItem => {
                     const catalogItem = catalogData.find(c => c.id === cartItem.id);
                     if (catalogItem) {
@@ -129,26 +182,22 @@ function sendOrder() {
                     }
                 });
 
-                // Сохраняем актуальные остатки
                 localStorage.setItem("catalogStock", JSON.stringify(catalogData));
-
-                // Очищаем корзину
                 localStorage.removeItem("cart");
                 cart = [];
 
                 renderCart();
                 updateCartBadge();
 
-                // Можно добавить небольшую задержку перед переходом обратно
                 setTimeout(() => {
                     window.location.href = "index.html";
                 }, 1800);
             } else {
-                showToast("Ошибка отправки. Попробуйте позже ❌");
+                showToast("Ошибка отправки заказа ❌");
             }
         })
         .catch(() => {
-            showToast("Нет интернета или ошибка сервера ❌");
+            showToast("Ошибка соединения ❌");
         });
 }
 
