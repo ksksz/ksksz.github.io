@@ -1,15 +1,13 @@
-const BOT_TOKEN = "TELEGRAM_TOKEN_REMOVED";
-const CHAT_ID = "427675942";
+const BOT_TOKEN = "TELEGRAM_TOKEN_REMOVED"; // ← ОБЯЗАТЕЛЬНО замени!
+const CHAT_ID = "427675942";     // ← ОБЯЗАТЕЛЬНО замени!
 
 const cartDiv = document.getElementById("cart");
 const totalDiv = document.getElementById("total");
 
-// Функция отрисовки корзины
 function renderCart() {
     cartDiv.innerHTML = "";
     let total = 0;
 
-    // cart берётся из cart.js (глобальная переменная)
     if (!cart.length) {
         cartDiv.innerHTML = `<p class="empty-cart">Корзина пуста</p>`;
         totalDiv.innerHTML = "";
@@ -54,12 +52,12 @@ function sendOrder() {
     const comment = document.getElementById("comment").value.trim();
 
     if (!name || !phone) {
-        alert("Пожалуйста, заполните имя и телефон");
+        showToast("Заполните имя и телефон ⚠️");
         return;
     }
 
     if (cart.length === 0) {
-        alert("Корзина пуста! Добавьте товары перед оформлением.");
+        showToast("Корзина пуста!");
         return;
     }
 
@@ -75,9 +73,7 @@ function sendOrder() {
     message += `\n💰 *Итого: ${total.toLocaleString()} ₽*`;
     message += `\n\n👤 *Имя:* ${name}`;
     message += `\n📞 *Телефон:* ${phone}`;
-    if (comment) {
-        message += `\n💬 *Комментарий:* ${comment}`;
-    }
+    if (comment) message += `\n💬 *Комментарий:* ${comment}`;
 
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -91,19 +87,18 @@ function sendOrder() {
         .then(res => res.json())
         .then(data => {
             if (data.ok) {
-                alert("Заказ успешно отправлен! Спасибо за покупку ❤️");
+                showToast("Заказ отправлен! Спасибо ❤️");
                 localStorage.removeItem("cart");
-                cart = []; // Очищаем глобальную корзину
+                cart = [];
                 renderCart();
                 updateCartBadge();
             } else {
-                alert("Ошибка отправки. Попробуйте позже.");
+                showToast("Ошибка отправки. Попробуйте позже ❌");
             }
         })
         .catch(() => {
-            alert("Ошибка сети. Проверьте подключение к интернету.");
+            showToast("Нет интернета или ошибка сервера ❌");
         });
 }
 
-// Отрисовываем корзину сразу при загрузке страницы
 renderCart();
