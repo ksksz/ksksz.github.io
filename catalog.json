@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Клубника в шоколаде",
+    "price": 1990,
+    "description": "Свежая клубника в бельгийском шоколаде",
+    "image": "https://via.placeholder.com/400x300",
+    "formLink": ""
+  },
+  {
+    "id": 2,
+    "title": "Набор ягод",
+    "price": 2990,
+    "description": "Ассорти свежих ягод",
+    "image": "https://via.placeholder.com/400x300",
+    "formLink": ""
+  }
+]

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Каталог товаров</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>КАТАЛОГ ТОВАРОВ</header>
+
+<div class="catalog" id="catalog"></div>
+
+<div class="checkout-btn">
+  <a href="checkout.html">
+    Перейти к оформлению заказа
+    <span class="cart-badge">0</span>
+  </a>
+</div>
+
+<!-- Анимация снежинок -->
+<div class="snowflakes" id="snowflakes"></div>
+
+<script src="cart.js"></script>
+<script src="app.js"></script>
+
+<script>
+  // Создаём падающие снежинки
+  const snowflakesContainer = document.getElementById('snowflakes');
+  const snowflakeCount = 30;
+  const snowflakes = ['❄', '❅', '❆', '✿', '✼', '❉'];
+
+  for (let i = 0; i < snowflakeCount; i++) {
+    const snowflake = document.createElement('div');
+    snowflake.classList.add('snowflake');
+    snowflake.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+
+    const size = Math.random() * 20 + 12;
+    snowflake.style.fontSize = `${size}px`;
+
+    snowflake.style.left = `${Math.random() * 100}%`;
+
+    const duration = Math.random() * 15 + 10;
+    snowflake.style.animationDuration = `${duration}s`;
+    snowflake.style.animationDelay = `${Math.random() * 10}s`;
+
+    snowflakesContainer.appendChild(snowflake);
+  }
+</script>
+
+</body>
+</html>
