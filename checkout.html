@@ -28,14 +28,30 @@
   <button class="submit-btn" onclick="sendOrder()">Отправить заказ в Telegram</button>
 </div>
 
-<!-- Анимация снежинок -->
 <div class="snowflakes" id="snowflakes"></div>
 
 <script src="cart.js"></script>
 <script src="checkout.js"></script>
 
 <script>
-  // Создаём падающие снежинки
+  // Toast функция (та же, что и на главной)
+  function showToast(message) {
+    const oldToast = document.querySelector('.toast');
+    if (oldToast) oldToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 400);
+    }, 3000);
+  }
+
+  // Снежинки
   const snowflakesContainer = document.getElementById('snowflakes');
   const snowflakeCount = 30;
   const snowflakes = ['❄', '❅', '❆', '✿', '✼', '❉'];
