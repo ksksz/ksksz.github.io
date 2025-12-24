@@ -295,3 +295,34 @@ header {
     opacity: 1;
     transform: translateX(-50%) translateY(-10px);
 }
+
+/* Статус наличия товара */
+.stock {
+    display: block;
+    margin: 12px 16px 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.stock.available {
+    color: #28a745;
+}
+
+.stock.unavailable {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Кнопка при отсутствии товара */
+.card button[disabled] {
+    background: #cccccc !important;
+    color: #888888 !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.card button[disabled]:hover {
+    transform: none;
+    box-shadow: none;
+}

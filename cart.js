@@ -6,11 +6,24 @@ function saveCart() {
 }
 
 function addToCart(item) {
+    if (item.stock === 0) {
+        showToast("Товара нет в наличии 😔");
+        return;
+    }
+
     const found = cart.find(i => i.id === item.id);
 
     if (found) {
+        if (found.qty + 1 > item.stock) {
+            showToast(`В наличии только ${item.stock} шт.`);
+            return;
+        }
         found.qty += 1;
     } else {
+        if (1 > item.stock) {
+            showToast(`В наличии только ${item.stock} шт.`);
+            return;
+        }
         cart.push({ ...item, qty: 1 });
     }
 
@@ -37,9 +50,18 @@ function updateCartBadge() {
 }
 
 function changeQty(index, delta) {
-    cart[index].qty += delta;
-    if (cart[index].qty <= 0) {
+    const item = cart[index];
+    const newQty = item.qty + delta;
+
+    if (newQty > item.stock) {
+        showToast(`В наличии только ${item.stock} шт.`);
+        return;
+    }
+
+    if (newQty <= 0) {
         cart.splice(index, 1);
+    } else {
+        item.qty = newQty;
     }
     saveCart();
 }

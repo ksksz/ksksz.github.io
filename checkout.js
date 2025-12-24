@@ -4,6 +4,21 @@ const CHAT_ID = "427675942";     // ← ОБЯЗАТЕЛЬНО замени!
 const cartDiv = document.getElementById("cart");
 const totalDiv = document.getElementById("total");
 
+let catalogData = [];
+
+// Загружаем актуальные данные о stock
+const savedStock = localStorage.getItem("catalogStock");
+if (savedStock) {
+    catalogData = JSON.parse(savedStock);
+} else {
+    fetch("catalog.json")
+        .then(res => res.json())
+        .then(data => {
+            catalogData = data;
+            localStorage.setItem("catalogStock", JSON.stringify(catalogData));
+        });
+}
+
 function renderCart() {
     cartDiv.innerHTML = "";
     let total = 0;
@@ -18,10 +33,16 @@ function renderCart() {
         const sum = item.qty * item.price;
         total += sum;
 
+        // Показываем остаток под названием товара
+        const catalogItem = catalogData.find(i => i.id === item.id);
+        const stockInfo = catalogItem && catalogItem.stock > 0
+            ? `<small style="color:#777; display:block; margin-top:4px;">Осталось: ${catalogItem.stock} шт.</small>`
+            : `<small style="color:#ff6b9d; display:block; margin-top:4px; font-weight:600;">Нет в наличии</small>`;
+
         cartDiv.innerHTML += `
       <div class="cart-item">
         <div class="cart-info">
-          <h4>${item.title}</h4>
+          <h4>${item.title}${stockInfo}</h4>
           <div class="cart-price">
             ${item.price.toLocaleString()} ₽ × ${item.qty} = ${sum.toLocaleString()} ₽
           </div>
@@ -88,6 +109,20 @@ function sendOrder() {
         .then(data => {
             if (data.ok) {
                 showToast("Заказ отправлен! Спасибо ❤️");
+
+                // Уменьшаем остаток товаров после успешного заказа
+                cart.forEach(cartItem => {
+                    const catalogItem = catalogData.find(c => c.id === cartItem.id);
+                    if (catalogItem) {
+                        catalogItem.stock -= cartItem.qty;
+                        if (catalogItem.stock < 0) catalogItem.stock = 0;
+                    }
+                });
+
+                // Сохраняем обновлённый остаток
+                localStorage.setItem("catalogStock", JSON.stringify(catalogData));
+
+                // Очищаем корзину
                 localStorage.removeItem("cart");
                 cart = [];
                 renderCart();

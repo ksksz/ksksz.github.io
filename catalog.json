@@ -1,18 +1,34 @@
 [
   {
     "id": 1,
-    "title": "Клубника в шоколаде",
+    "title": "Клубника в бельгийском шоколаде",
     "price": 1990,
-    "description": "Свежая клубника в бельгийском шоколаде",
-    "image": "https://via.placeholder.com/400x300",
-    "formLink": ""
+    "description": "Свежая отборная клубника в премиальном бельгийском шоколаде",
+    "image": "https://via.placeholder.com/400x300/FF6B9D/FFFFFF?text=Клубника+в+шоколаде",
+    "stock": 15
   },
   {
     "id": 2,
-    "title": "Набор ягод",
+    "title": "Набор свежих ягод (1 кг)",
     "price": 2990,
-    "description": "Ассорти свежих ягод",
-    "image": "https://via.placeholder.com/400x300",
-    "formLink": ""
+    "description": "Клубника, малина, голубика, ежевика — свежий микс",
+    "image": "https://via.placeholder.com/400x300/A08CFF/FFFFFF?text=Набор+ягод",
+    "stock": 8
+  },
+  {
+    "id": 3,
+    "title": "Шоколадный букет «Роза»",
+    "price": 3500,
+    "description": "Эксклюзивный букет из шоколадных роз",
+    "image": "https://via.placeholder.com/400x300/7B61FF/FFFFFF?text=Шоколадный+букет",
+    "stock": 0
+  },
+  {
+    "id": 4,
+    "title": "Малиновый тарт",
+    "price": 2200,
+    "description": "Нежный тарт с малиной и кремом",
+    "image": "https://via.placeholder.com/400x300/FF6B9D/FFFFFF?text=Малиновый+тарт",
+    "stock": 3
   }
 ]
