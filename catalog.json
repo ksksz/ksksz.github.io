@@ -13,7 +13,7 @@
     "price": 2990,
     "description": "Клубника, малина, голубика, ежевика — свежий микс",
     "image": "https://via.placeholder.com/400x300/A08CFF/FFFFFF?text=Набор+ягод",
-    "stock": 0
+    "stock": 1
   },
   {
     "id": 3,
@@ -29,6 +29,6 @@
     "price": 2200,
     "description": "Нежный тарт с малиной и кремом",
     "image": "https://via.placeholder.com/400x300/FF6B9D/FFFFFF?text=Малиновый+тарт",
-    "stock": 1
+    "stock": 0
   }
 ]
