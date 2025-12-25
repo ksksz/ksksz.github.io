@@ -29,16 +29,10 @@ fetch("catalog.json")
                 const item = items.find(i => i.id === itemId);
                 const inStock = item && item.stock > 0;
 
-                const qtySpan = container.querySelector(".qty-display");
-                const minusBtn = container.querySelector(".qty-minus");
-                const plusBtn = container.querySelector(".qty-plus");
-                const addBtn = container.querySelector(".add-to-cart-btn");
-
                 if (!inStock) {
+                    // Просто надпись "Нет в наличии" без кнопки
                     container.innerHTML = `
-                        <button class="add-to-cart-btn disabled" disabled>
-                            Нет в наличии
-                        </button>
+                        <div class="out-of-stock-label">Нет в наличии</div>
                     `;
                     return;
                 }
@@ -64,7 +58,7 @@ fetch("catalog.json")
         }
 
         function attachButtonHandlers() {
-            document.querySelectorAll(".add-to-cart-btn:not(.disabled)").forEach(btn => {
+            document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
                 btn.onclick = () => {
                     const itemId = parseInt(btn.dataset.id);
                     const item = items.find(i => i.id === itemId);
@@ -100,10 +94,7 @@ fetch("catalog.json")
 
         // Генерация карточек
         items.forEach(item => {
-            const stockText = item.stock > 0
-                ? ''  // Ничего не показываем
-                : `<span class="stock unavailable">Нет в наличии</span>`;
-
+            // Убрали отдельный блок с "Нет в наличии" над кнопкой — теперь только в qty-container
             const currentQty = cart.find(i => i.id === item.id)?.qty || 0;
 
             catalog.innerHTML += `
@@ -112,20 +103,21 @@ fetch("catalog.json")
           <h3>${item.title}</h3>
           <strong>${item.price.toLocaleString()} ₽</strong>
           <p>${item.description}</p>
-          ${stockText}
           <div class="qty-container" data-id="${item.id}">
-            ${currentQty > 0 && item.stock > 0 ? `
+            ${item.stock > 0 ? (
+                currentQty > 0 ? `
               <div class="qty-control-inline">
                 <button class="qty-btn-inline qty-minus" data-id="${item.id}">−</button>
                 <span class="qty-display-inline">${currentQty}</span>
                 <button class="qty-btn-inline qty-plus" data-id="${item.id}">+</button>
               </div>
             ` : `
-              <button class="add-to-cart-btn ${item.stock === 0 ? 'disabled' : ''}" 
-                      ${item.stock === 0 ? 'disabled' : ''} 
-                      data-id="${item.id}">
-                ${item.stock === 0 ? 'Нет в наличии' : 'В корзину'}
+              <button class="add-to-cart-btn" data-id="${item.id}">
+                В корзину
               </button>
+            `
+            ) : `
+              <div class="out-of-stock-label">Нет в наличии</div>
             `}
           </div>
         </div>

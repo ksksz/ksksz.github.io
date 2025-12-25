@@ -455,3 +455,15 @@ header {
     color: #666;
     margin-top: 4px;
 }
+
+.out-of-stock-label {
+    padding: 15px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 14px;
+    width: 100%;
+}
