@@ -8,7 +8,6 @@ fetch("catalog.json")
         if (savedStock) {
             try {
                 const parsedStock = JSON.parse(savedStock);
-                // Обновляем только поле stock, остальные данные берём из оригинального json
                 items = originalItems.map(item => {
                     const saved = parsedStock.find(s => s.id === item.id);
                     return saved ? { ...item, stock: saved.stock } : item;
@@ -20,7 +19,6 @@ fetch("catalog.json")
 
         const catalog = document.getElementById("catalog");
 
-        // Функция обновления всех кнопок/контроллеров в каталоге
         function updateAllButtons() {
             const containers = document.querySelectorAll(".card .qty-container");
             containers.forEach(container => {
@@ -103,7 +101,7 @@ fetch("catalog.json")
         // Генерация карточек
         items.forEach(item => {
             const stockText = item.stock > 0
-                ? `<span class="stock available">В наличии: ${item.stock} шт.</span>`
+                ? ''  // Ничего не показываем
                 : `<span class="stock unavailable">Нет в наличии</span>`;
 
             const currentQty = cart.find(i => i.id === item.id)?.qty || 0;

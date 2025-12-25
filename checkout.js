@@ -59,9 +59,11 @@ function renderCart() {
     cart.forEach((item, index) => {
         const itemSum = item.qty * item.price;
         const catalogItem = catalogData.find(i => i.id === item.id);
+
+        // Показываем "Нет в наличии" только если stock === 0
         const stockInfo = catalogItem
             ? (catalogItem.stock > 0
-                ? `<small style="color:#777; display:block; margin-top:4px;">Осталось: ${catalogItem.stock} шт.</small>`
+                ? ''
                 : `<small style="color:#ff6b9d; display:block; margin-top:4px; font-weight:600;">Нет в наличии</small>`)
             : `<small style="color:#888;">Данные о наличии отсутствуют</small>`;
 
@@ -132,13 +134,7 @@ function sendOrder() {
         return;
     }
 
-    for (const cartItem of cart) {
-        const catalogItem = catalogData.find(c => c.id === cartItem.id);
-        if (!catalogItem || catalogItem.stock < cartItem.qty) {
-            showToast(`Недостаточно товара "${cartItem.title}" в наличии!`);
-            return;
-        }
-    }
+    // Убрана проверка остатков — можно заказывать любое количество
 
     const option = DELIVERY_OPTIONS[selectedOption];
     const deliveryCost = option.price;
@@ -175,14 +171,8 @@ function sendOrder() {
             if (data.ok) {
                 showToast("Заказ отправлен! Спасибо ❤️");
 
-                cart.forEach(cartItem => {
-                    const catalogItem = catalogData.find(c => c.id === cartItem.id);
-                    if (catalogItem) {
-                        catalogItem.stock = Math.max(0, catalogItem.stock - cartItem.qty);
-                    }
-                });
+                // Не уменьшаем остатки, т.к. количества не считаем
 
-                localStorage.setItem("catalogStock", JSON.stringify(catalogData));
                 localStorage.removeItem("cart");
                 cart = [];
 
