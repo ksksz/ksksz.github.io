@@ -1,23 +1,24 @@
-const BOT_TOKEN = "8580777195:AAHCLZvYy58ybfNZlWfoN_L7GBzhtuRFbQI"; // ← ОБЯЗАТЕЛЬНО замените!
-const CHAT_ID = "427675942";                                         // ← ОБЯЗАТЕЛЬНО замените!
+const BOT_TOKEN = "8580777195:AAHCLZvYy58ybfNZlWfoN_L7GBzhtuRFbQI"; // ← Замените на свой!
+const CHAT_ID = "427675942";                                         // ← Замените на свой!
 
 const cartDiv = document.getElementById("cart");
 const totalDiv = document.getElementById("total");
 
 let catalogData = [];
 
-const savedStock = localStorage.getItem("catalogStock");
-if (savedStock) {
-    catalogData = JSON.parse(savedStock);
-} else {
-    fetch("catalog.json")
-        .then(res => res.json())
-        .then(data => {
-            catalogData = data;
-            localStorage.setItem("catalogStock", JSON.stringify(catalogData));
-        })
-        .catch(err => console.error("Ошибка загрузки catalog.json:", err));
-}
+// Всегда загружаем свежий каталог с сервера (без localStorage и с анти-кэшем)
+fetch("catalog.json?" + new Date().getTime())
+    .then(res => res.json())
+    .then(data => {
+        catalogData = data;
+        renderCart(); // Рендерим корзину только после получения актуальных данных
+    })
+    .catch(err => {
+        console.error("Ошибка загрузки catalog.json:", err);
+        showToast("Не удалось загрузить данные о товарах ❌");
+        catalogData = [];
+        renderCart();
+    });
 
 const DELIVERY_OPTIONS = {
     "tomsk_delivery": {
@@ -60,7 +61,7 @@ function renderCart() {
         const itemSum = item.qty * item.price;
         const catalogItem = catalogData.find(i => i.id === item.id);
 
-        // Показываем "Нет в наличии" только если stock === 0
+        // Информация о наличии — берётся из свежего catalogData
         const stockInfo = catalogItem
             ? (catalogItem.stock > 0
                 ? ''
@@ -112,6 +113,7 @@ function updateTotal() {
     renderCart();
 }
 
+// Обработчики выбора доставки
 document.querySelectorAll('input[name="delivery"]').forEach(radio => {
     radio.addEventListener('change', function() {
         selectedOption = this.value;
@@ -133,8 +135,6 @@ function sendOrder() {
         showToast("Корзина пуста!");
         return;
     }
-
-    // Убрана проверка остатков — можно заказывать любое количество
 
     const option = DELIVERY_OPTIONS[selectedOption];
     const deliveryCost = option.price;
@@ -171,10 +171,9 @@ function sendOrder() {
             if (data.ok) {
                 showToast("Заказ отправлен! Спасибо ❤️");
 
-                // Не уменьшаем остатки, т.к. количества не считаем
-
                 localStorage.removeItem("cart");
                 cart = [];
+                saveCart(); // обновляем бейдж и т.д.
 
                 renderCart();
                 updateCartBadge();
@@ -191,4 +190,4 @@ function sendOrder() {
         });
 }
 
-renderCart();
+// Первичный рендер (будет выполнен после загрузки catalogData)

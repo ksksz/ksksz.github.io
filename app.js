@@ -1,21 +1,8 @@
-fetch("catalog.json")
+fetch("catalog.json?" + new Date().getTime()) // анти-кэш
     .then(res => res.json())
-    .then(originalItems => {
-        let items = originalItems;
-
-        // Если есть сохранённые актуальные остатки — используем их
-        const savedStock = localStorage.getItem("catalogStock");
-        if (savedStock) {
-            try {
-                const parsedStock = JSON.parse(savedStock);
-                items = originalItems.map(item => {
-                    const saved = parsedStock.find(s => s.id === item.id);
-                    return saved ? { ...item, stock: saved.stock } : item;
-                });
-            } catch (e) {
-                console.warn("Повреждённые данные catalogStock в localStorage", e);
-            }
-        }
+    .then(items => {
+        // Убрано полностью использование localStorage для catalogStock
+        // items — всегда свежие данные с сервера
 
         const catalog = document.getElementById("catalog");
 
@@ -30,7 +17,6 @@ fetch("catalog.json")
                 const inStock = item && item.stock > 0;
 
                 if (!inStock) {
-                    // Просто надпись "Нет в наличии" без кнопки
                     container.innerHTML = `
                         <div class="out-of-stock-label">Нет в наличии</div>
                     `;
@@ -92,9 +78,8 @@ fetch("catalog.json")
             });
         }
 
-        // Генерация карточек
+        // Генерация карточек товаров
         items.forEach(item => {
-            // Убрали отдельный блок с "Нет в наличии" над кнопкой — теперь только в qty-container
             const currentQty = cart.find(i => i.id === item.id)?.qty || 0;
 
             catalog.innerHTML += `
