@@ -1,8 +1,6 @@
 fetch("catalog.json?" + new Date().getTime()) // анти-кэш
     .then(res => res.json())
     .then(items => {
-        // Убрано полностью использование localStorage для catalogStock
-        // items — всегда свежие данные с сервера
 
         const catalog = document.getElementById("catalog");
 
@@ -78,7 +76,6 @@ fetch("catalog.json?" + new Date().getTime()) // анти-кэш
             });
         }
 
-        // Генерация карточек товаров
         items.forEach(item => {
             const currentQty = cart.find(i => i.id === item.id)?.qty || 0;
 

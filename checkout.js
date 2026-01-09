@@ -6,12 +6,12 @@ const totalDiv = document.getElementById("total");
 
 let catalogData = [];
 
-// Всегда загружаем свежий каталог с сервера (без localStorage и с анти-кэшем)
+//  загружаем свежий каталог с сервера
 fetch("catalog.json?" + new Date().getTime())
     .then(res => res.json())
     .then(data => {
         catalogData = data;
-        renderCart(); // Рендерим корзину только после получения актуальных данных
+        renderCart(); // Рендерим корзину после получения актуальных данных
     })
     .catch(err => {
         console.error("Ошибка загрузки catalog.json:", err);
@@ -61,7 +61,7 @@ function renderCart() {
         const itemSum = item.qty * item.price;
         const catalogItem = catalogData.find(i => i.id === item.id);
 
-        // Информация о наличии — берётся из свежего catalogData
+        // Информация о наличии берётся из свежего cD
         const stockInfo = catalogItem
             ? (catalogItem.stock > 0
                 ? ''
