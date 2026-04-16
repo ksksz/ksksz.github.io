@@ -111,7 +111,8 @@
     }
 
     .section-copy,
-    .message {
+    .message,
+    .status-banner {
       color: var(--muted);
       font-size: 14px;
     }
@@ -266,7 +267,7 @@
       <small>Категории, товары и остатки магазина</small>
     </div>
     <div class="actions" id="header-actions" hidden>
-      <button class="secondary" type="button" onclick="loadData()">Обновить</button>
+      <button class="secondary" type="button" onclick="refreshAdmin()">Обновить</button>
       <button class="secondary" type="button" onclick="logout()">Выйти</button>
     </div>
   </header>
@@ -285,6 +286,8 @@
     </section>
 
     <section id="admin-content" hidden>
+      <p class="status-banner" id="status-banner"></p>
+
       <section class="panel">
         <div class="toolbar">
           <div>
@@ -316,6 +319,7 @@
     const adminContent = document.getElementById("admin-content");
     const headerActions = document.getElementById("header-actions");
     const loginMessage = document.getElementById("login-message");
+    const statusBanner = document.getElementById("status-banner");
 
     let categoriesState = [];
 
@@ -335,8 +339,16 @@
         ...options
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Ошибка запроса");
+      if (!res.ok) {
+        const error = new Error(data.error || "Ошибка запроса");
+        error.status = res.status;
+        throw error;
+      }
       return data;
+    }
+
+    function setStatus(message = "") {
+      statusBanner.textContent = message;
     }
 
     async function login() {
@@ -347,6 +359,7 @@
           body: JSON.stringify({ password: document.getElementById("password").value })
         });
         await loadData();
+        setStatus("Данные загружены");
       } catch (error) {
         loginMessage.textContent = error.message;
       }
@@ -357,6 +370,7 @@
       loginPanel.hidden = false;
       adminContent.hidden = true;
       headerActions.hidden = true;
+      setStatus("");
     }
 
     async function loadData() {
@@ -370,6 +384,21 @@
       headerActions.hidden = false;
       renderCategories(categories);
       renderProducts(products, categories);
+    }
+
+    async function refreshAdmin() {
+      setStatus("Обновляем данные...");
+      try {
+        await loadData();
+        setStatus("Данные обновлены");
+      } catch (error) {
+        if (error.status === 401) {
+          await logout();
+          loginMessage.textContent = "Сессия истекла. Введите пароль снова.";
+          return;
+        }
+        setStatus(error.message || "Не удалось обновить данные");
+      }
     }
 
     function categoryOptions(selectedId) {
