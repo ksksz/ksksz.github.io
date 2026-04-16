@@ -12,20 +12,24 @@ function saveCart() {
 
 function addToCart(item) {
     if (item.stock === 0) {
-        showToast("Товара нет в наличии 😔");
+        showToast("Товара нет в наличии");
         return;
     }
 
     const found = cart.find(i => i.id === item.id);
 
     if (found) {
+        if (found.qty >= item.stock) {
+            showToast("В корзине уже весь доступный остаток");
+            return;
+        }
         found.qty += 1;
     } else {
         cart.push({ ...item, qty: 1 });
     }
 
     saveCart();
-    showToast("Товар добавлен в корзину ✅");
+    showToast("Товар добавлен в корзину");
 }
 
 function getCartTotalItems() {
@@ -52,6 +56,9 @@ function changeQty(index, delta) {
 
     if (newQty <= 0) {
         cart.splice(index, 1);
+    } else if (item.stock && newQty > item.stock) {
+        showToast("Нельзя добавить больше, чем есть в наличии");
+        return;
     } else {
         item.qty = newQty;
     }

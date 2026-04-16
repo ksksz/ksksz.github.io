@@ -3,14 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Каталог товаров</title>
+  <title>Fish & Berry - каталог</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<header>Каталог товаров Fish & Berry ❤️</header>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-name">Fish & Berry</span>
+      <span class="brand-subtitle">Свежие ягоды, десерты и подарочные наборы</span>
+    </div>
+    <div class="header-note">Томск и Северск</div>
+  </div>
+</header>
 
-<div class="catalog" id="catalog"></div>
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <div class="eyebrow">Сборка под заказ</div>
+      <h1 id="hero-title">Ягодные подарки и десерты на каждый день</h1>
+      <p>Выберите набор, укажите способ получения и отправьте заказ. Продавец увидит все детали в таблице заказов.</p>
+    </div>
+    <div class="hero-panel" aria-hidden="true"></div>
+  </section>
+
+  <section class="section-heading" aria-label="Категории">
+    <h2>Категории</h2>
+    <p>Быстрый вход в нужный раздел каталога</p>
+  </section>
+
+  <div class="category-cards" id="category-cards"></div>
+
+  <section class="section-heading" aria-label="Каталог">
+    <h2>Каталог</h2>
+    <p>Актуальные остатки обновляются из базы данных</p>
+  </section>
+
+  <div class="catalog-filters" id="catalog-filters" aria-label="Фильтр по категориям"></div>
+  <div class="catalog" id="catalog"></div>
+</main>
 
 <div class="checkout-btn">
   <a href="checkout.html">
@@ -18,8 +50,6 @@
     <span class="cart-badge">0</span>
   </a>
 </div>
-
-<div class="snowflakes" id="snowflakes"></div>
 
 <script src="cart.js"></script>
 <script src="app.js"></script>
@@ -42,28 +72,6 @@
     }, 3000);
   }
 
-  // Снежинки
-  const snowflakesContainer = document.getElementById('snowflakes');
-  const snowflakeCount = 300;
-  const snowflakes = ['❄', '❅', '❆', '✿', '✼', '❉'];
-
-  for (let i = 0; i < snowflakeCount; i++) {
-    const snowflake = document.createElement('div');
-    snowflake.classList.add('snowflake');
-    snowflake.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
-
-    const size = Math.random() * 20 + 12;
-    snowflake.style.fontSize = `${size}px`;
-
-    snowflake.style.left = `${Math.random() * 100}%`;
-
-    const duration = Math.random() * 15 + 10;
-    snowflake.style.animationDuration = `${duration}s`;
-    snowflake.style.animationDelay = `${Math.random() * 10}s`;
-
-    snowflakesContainer.appendChild(snowflake);
-  }
 </script>
-
 </body>
 </html>
