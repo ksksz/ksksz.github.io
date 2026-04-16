@@ -105,6 +105,7 @@ function requireAdmin(req, res, next) {
 function productDto(row) {
   return {
     id: Number(row.id),
+    categoryId: row.category_id ? Number(row.category_id) : null,
     category: row.category,
     title: row.title,
     price: Number(row.price),
@@ -115,9 +116,20 @@ function productDto(row) {
   };
 }
 
+function categoryDto(row) {
+  return {
+    id: Number(row.id),
+    name: row.name,
+    description: row.description,
+    image: row.image,
+    sortOrder: Number(row.sort_order),
+    isActive: row.is_active
+  };
+}
+
 function normalizeProduct(input) {
   return {
-    category: String(input.category || 'Без категории').trim() || 'Без категории',
+    categoryId: Number.parseInt(input.categoryId, 10) || null,
     title: String(input.title || '').trim(),
     price: Math.max(0, Number.parseInt(input.price, 10) || 0),
     description: String(input.description || '').trim(),
@@ -125,6 +137,45 @@ function normalizeProduct(input) {
     stock: Math.max(0, Number.parseInt(input.stock, 10) || 0),
     isActive: input.isActive !== false
   };
+}
+
+function normalizeCategory(input) {
+  return {
+    name: String(input.name || '').trim() || 'Без категории',
+    description: String(input.description || '').trim(),
+    image: String(input.image || '').trim(),
+    sortOrder: Math.max(0, Number.parseInt(input.sortOrder, 10) || 0),
+    isActive: input.isActive !== false
+  };
+}
+
+async function getFallbackCategory(client) {
+  const { rows } = await client.query(
+    `SELECT * FROM categories
+     WHERE name = 'Без категории'
+     ORDER BY id ASC
+     LIMIT 1`
+  );
+  if (rows.length) return rows[0];
+
+  const { rows: created } = await client.query(
+    `INSERT INTO categories (name, description, image, sort_order, is_active)
+     VALUES ('Без категории', '', '', 999, TRUE)
+     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+     RETURNING *`
+  );
+  return created[0];
+}
+
+async function resolveCategory(client, categoryId) {
+  if (categoryId) {
+    const { rows } = await client.query(
+      `SELECT * FROM categories WHERE id = $1 LIMIT 1`,
+      [categoryId]
+    );
+    if (rows.length) return rows[0];
+  }
+  return getFallbackCategory(client);
 }
 
 function getSheetsClient() {
@@ -271,9 +322,26 @@ app.get('/api/health', async (_req, res, next) => {
 app.get('/api/products', async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM products WHERE is_active = TRUE ORDER BY id ASC'
+      `SELECT p.*, p.category_id, COALESCE(c.name, p.category, 'Без категории') AS category
+       FROM products p
+       LEFT JOIN categories c ON c.id = p.category_id
+       WHERE p.is_active = TRUE
+       ORDER BY COALESCE(c.sort_order, 999), COALESCE(c.name, p.category, 'Без категории'), p.id ASC`
     );
     res.json(rows.map(productDto));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/categories', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM categories
+       WHERE is_active = TRUE
+       ORDER BY sort_order ASC, name ASC`
+    );
+    res.json(rows.map(categoryDto));
   } catch (error) {
     next(error);
   }
@@ -281,48 +349,200 @@ app.get('/api/products', async (_req, res, next) => {
 
 app.get('/api/admin/products', requireAdmin, async (_req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM products ORDER BY id ASC');
+    const { rows } = await pool.query(
+      `SELECT p.*, p.category_id, COALESCE(c.name, p.category, 'Без категории') AS category
+       FROM products p
+       LEFT JOIN categories c ON c.id = p.category_id
+       ORDER BY COALESCE(c.sort_order, 999), COALESCE(c.name, p.category, 'Без категории'), p.id ASC`
+    );
     res.json(rows.map(productDto));
   } catch (error) {
     next(error);
   }
 });
 
-app.post('/api/admin/products', requireAdmin, async (req, res, next) => {
+app.get('/api/admin/categories', requireAdmin, async (_req, res, next) => {
   try {
-    const product = normalizeProduct(req.body);
     const { rows } = await pool.query(
-      `INSERT INTO products (category, title, price, description, image, stock, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [product.category, product.title, product.price, product.description, product.image, product.stock, product.isActive]
+      `SELECT * FROM categories
+       ORDER BY sort_order ASC, name ASC`
     );
-    res.status(201).json(productDto(rows[0]));
+    res.json(rows.map(categoryDto));
   } catch (error) {
     next(error);
   }
 });
 
-app.put('/api/admin/products/:id', requireAdmin, async (req, res, next) => {
+app.post('/api/admin/categories', requireAdmin, async (req, res, next) => {
   try {
-    const product = normalizeProduct(req.body);
+    const category = normalizeCategory(req.body);
     const { rows } = await pool.query(
-      `UPDATE products
-       SET category = $1, title = $2, price = $3, description = $4, image = $5, stock = $6, is_active = $7
-       WHERE id = $8
+      `INSERT INTO categories (name, description, image, sort_order, is_active)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [product.category, product.title, product.price, product.description, product.image, product.stock, product.isActive, req.params.id]
+      [category.name, category.description, category.image, category.sortOrder, category.isActive]
     );
-    if (!rows.length) return res.status(404).json({ error: 'Товар не найден' });
-    res.json(productDto(rows[0]));
+    res.status(201).json(categoryDto(rows[0]));
   } catch (error) {
     next(error);
+  }
+});
+
+app.put('/api/admin/categories/:id', requireAdmin, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const category = normalizeCategory(req.body);
+    await client.query('BEGIN');
+    const { rows: currentRows } = await client.query(
+      `SELECT * FROM categories WHERE id = $1 LIMIT 1`,
+      [req.params.id]
+    );
+    if (!currentRows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Категория не найдена' });
+    }
+
+    const previousName = currentRows[0].name;
+    const { rows } = await client.query(
+      `UPDATE categories
+       SET name = $1, description = $2, image = $3, sort_order = $4, is_active = $5
+       WHERE id = $6
+       RETURNING *`,
+      [category.name, category.description, category.image, category.sortOrder, category.isActive, req.params.id]
+    );
+
+    if (previousName !== category.name) {
+      await client.query(
+        `UPDATE products
+         SET category = $1
+         WHERE category_id = $2 OR category = $3`,
+        [category.name, req.params.id, previousName]
+      );
+    }
+
+    await client.query('COMMIT');
+    res.json(categoryDto(rows[0]));
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+});
+
+app.delete('/api/admin/categories/:id', requireAdmin, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const fallback = await getFallbackCategory(client);
+    const { rows } = await client.query(
+      `SELECT * FROM categories WHERE id = $1 LIMIT 1`,
+      [req.params.id]
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Категория не найдена' });
+    }
+    if (Number(rows[0].id) === Number(fallback.id)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Категорию "Без категории" удалить нельзя' });
+    }
+
+    await client.query(
+      `UPDATE products
+       SET category_id = $1, category = $2
+       WHERE category_id = $3 OR category = $4`,
+      [fallback.id, fallback.name, req.params.id, rows[0].name]
+    );
+    await client.query(`DELETE FROM categories WHERE id = $1`, [req.params.id]);
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+});
+
+app.post('/api/admin/products', requireAdmin, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const product = normalizeProduct(req.body);
+    const category = await resolveCategory(client, product.categoryId);
+    const { rows } = await client.query(
+      `INSERT INTO products (category_id, category, title, price, description, image, stock, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [category.id, category.name, product.title, product.price, product.description, product.image, product.stock, product.isActive]
+    );
+    res.status(201).json(productDto({ ...rows[0], category: category.name }));
+  } catch (error) {
+    next(error);
+  } finally {
+    client.release();
+  }
+});
+
+app.put('/api/admin/products/:id', requireAdmin, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const product = normalizeProduct(req.body);
+    const category = await resolveCategory(client, product.categoryId);
+    const { rows } = await client.query(
+      `UPDATE products
+       SET category_id = $1, category = $2, title = $3, price = $4, description = $5, image = $6, stock = $7, is_active = $8
+       WHERE id = $9
+       RETURNING *`,
+      [category.id, category.name, product.title, product.price, product.description, product.image, product.stock, product.isActive, req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Товар не найден' });
+    res.json(productDto({ ...rows[0], category: category.name }));
+  } catch (error) {
+    next(error);
+  } finally {
+    client.release();
   }
 });
 
 app.delete('/api/admin/products/:id', requireAdmin, async (req, res, next) => {
   try {
     await pool.query('UPDATE products SET is_active = FALSE WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.patch('/api/admin/orders/:id', requireAdmin, async (req, res, next) => {
+  try {
+    const status = String(req.body.status || '').trim();
+    const allowed = new Set(['new', 'processing', 'completed', 'cancelled']);
+    if (!allowed.has(status)) return res.status(400).json({ error: 'Некорректный статус' });
+
+    const { rows } = await pool.query(
+      `UPDATE orders
+       SET status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [status, req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Заказ не найден' });
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/admin/orders/:id', requireAdmin, async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `DELETE FROM orders
+       WHERE id = $1 AND status = 'completed'
+       RETURNING id`,
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(400).json({ error: 'Удалять можно только выполненные заказы' });
     res.json({ ok: true });
   } catch (error) {
     next(error);
@@ -440,7 +660,7 @@ app.post('/api/orders', async (req, res, next) => {
     } catch (error) {
       console.error('Google Sheets append failed:', error);
       return res.status(502).json({
-        error: 'Заказ сохранён, но не удалось записать его в Google Sheets. Свяжитесь с продавцом.'
+        error: 'Заказ сохранён, но не удалось завершить обработку. Свяжитесь с продавцом.'
       });
     }
 

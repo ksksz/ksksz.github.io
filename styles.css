@@ -178,6 +178,14 @@ a {
     font-weight: 800;
 }
 
+.category-card__text {
+    margin-top: 8px;
+    max-width: 240px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
 .section-heading {
     width: min(1180px, calc(100% - 32px));
     margin: 0 auto 18px;
