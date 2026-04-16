@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Админ-панель — Каталог</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Админ-панель - Fish & Berry</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,289 +11,533 @@
       padding: 0;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f5f3ff 0%, #e9e4ff 100%);
-      color: #222;
-      padding: 20px 15px;
-      min-height: 100vh;
+    :root {
+      --bg: #fbfaf8;
+      --surface: #ffffff;
+      --surface-strong: #f3f0ea;
+      --ink: #211f1d;
+      --muted: #706b64;
+      --line: #e7e1d8;
+      --accent: #b91646;
+      --accent-dark: #8f1236;
+      --shadow: 0 18px 45px rgba(50, 38, 31, 0.10);
     }
 
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(100, 80, 200, 0.12);
-      overflow: hidden;
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(251, 250, 248, 0.96)),
+        radial-gradient(circle at top left, rgba(185, 22, 70, 0.10), transparent 34rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 24px;
+      background: rgba(251, 250, 248, 0.86);
+      border-bottom: 1px solid rgba(231, 225, 216, 0.85);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      backdrop-filter: blur(18px);
     }
 
     h1 {
-      padding: 24px 28px;
-      background: #7b61ff;
-      color: white;
-      margin: 0;
-      font-size: 1.6rem;
+      font-size: 22px;
+      font-weight: 800;
     }
 
-    .warning {
-      padding: 16px 28px;
-      background: #fff3cd;
-      color: #856404;
-      font-size: 0.95rem;
-      border-bottom: 1px solid #ffeeba;
+    h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    main {
+      width: min(1280px, calc(100% - 32px));
+      margin: 24px auto 60px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .login {
+      max-width: 420px;
+      margin: 80px auto;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .product {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      background: linear-gradient(180deg, #ffffff, #fcfbf9);
+    }
+
+    .product img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--surface-strong);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(185, 22, 70, 0.12);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .check input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button.secondary {
+      background: #f3efe8;
+      color: var(--ink);
+    }
+
+    button.danger {
+      background: #b42318;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .message {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 14px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
     }
 
-    th, td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #eee;
-      vertical-align: middle;
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
     }
 
     th {
-      background: #f8f7ff;
-      color: #5a4b99;
-      font-weight: 600;
-      text-align: left;
-      white-space: nowrap;
+      color: var(--muted);
+      font-size: 13px;
+      background: #f8f5ef;
     }
 
-    td input {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      transition: border-color 0.2s;
-    }
-
-    td input:focus {
-      outline: none;
-      border-color: #7b61ff;
-      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
-    }
-
-    /* Обновлённые ширины колонок — ID стал заметно шире */
-    th:nth-child(1), td:nth-child(1) { width: 9%; min-width: 90px; }   /* ID — шире! */
-    th:nth-child(2), td:nth-child(2) { width: 22%; }                   /* Название */
-    th:nth-child(3), td:nth-child(3) { width: 10%; }                   /* Цена */
-    th:nth-child(4), td:nth-child(4) { width: 27%; }                   /* Описание */
-    th:nth-child(5), td:nth-child(5) { width: 20%; }                   /* Изображение */
-    th:nth-child(6), td:nth-child(6) { width: 8%;  }                   /* Остаток */
-    th:nth-child(7), td:nth-child(7) { width: 4%;  min-width: 110px; } /* Действия */
-
-    .actions {
+    .empty {
+      padding: 24px;
       text-align: center;
+      color: var(--muted);
     }
 
-    button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.15s;
+    .admin-brand {
+      display: grid;
+      gap: 2px;
     }
 
-    .delete-btn {
-      background: #ff4d4f;
-      color: white;
+    .admin-brand small {
+      color: var(--muted);
+      font-size: 13px;
     }
 
-    .delete-btn:hover {
-      background: #d9363e;
+    .section-copy {
+      color: var(--muted);
+      font-size: 14px;
     }
 
-    .add-btn, .save-btn {
-      display: block;
-      margin: 24px auto;
-      padding: 14px 32px;
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
+    @media (max-width: 720px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
 
-    .add-btn {
-      background: #40c4ff;
-      color: white;
-    }
+      .row {
+        grid-template-columns: 1fr;
+      }
 
-    .add-btn:hover {
-      background: #00b0ff;
-    }
-
-    .save-btn {
-      background: #4caf50;
-      color: white;
-      max-width: 400px;
-    }
-
-    .save-btn:hover {
-      background: #43a047;
-    }
-
-    @media (max-width: 900px) {
-      table, thead, tbody, th, td, tr {
+      table,
+      thead,
+      tbody,
+      tr,
+      th,
+      td {
         display: block;
       }
 
-      thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
+      thead {
+        display: none;
       }
 
       tr {
-        border: 1px solid #ddd;
-        margin-bottom: 16px;
+        border: 1px solid #ececf3;
         border-radius: 8px;
-        overflow: hidden;
+        margin-bottom: 12px;
+        padding: 8px;
       }
 
       td {
-        border: none;
-        border-bottom: 1px solid #eee;
-        position: relative;
-        padding-left: 50%;
-      }
-
-      td:before {
-        position: absolute;
-        top: 14px;
-        left: 16px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: 600;
-        color: #555;
-      }
-
-      td:nth-of-type(1):before { content: "ID"; }
-      td:nth-of-type(2):before { content: "Название"; }
-      td:nth-of-type(3):before { content: "Цена"; }
-      td:nth-of-type(4):before { content: "Описание"; }
-      td:nth-of-type(5):before { content: "Изображение"; }
-      td:nth-of-type(6):before { content: "Остаток"; }
-      td:nth-of-type(7):before { content: "Действия"; }
-
-      .actions {
-        text-align: center;
-        padding: 16px;
+        border: 0;
+        padding: 6px;
       }
     }
   </style>
 </head>
 <body>
+  <header>
+    <div class="admin-brand">
+      <h1>Fish & Berry Admin</h1>
+      <small>Каталог, остатки и заказы магазина</small>
+    </div>
+    <div class="actions" id="header-actions" hidden>
+      <button class="secondary" type="button" onclick="loadData()">Обновить</button>
+      <button class="secondary" type="button" onclick="logout()">Выйти</button>
+    </div>
+  </header>
 
-<div class="container">
-  <h1>Управление каталогом товаров</h1>
+  <main>
+    <section class="panel login" id="login-panel">
+      <h2>Вход</h2>
+      <label>
+        Пароль администратора
+        <input id="password" type="password" autocomplete="current-password" />
+      </label>
+      <div class="actions" style="margin-top: 14px;">
+        <button type="button" onclick="login()">Войти</button>
+      </div>
+      <p class="message" id="login-message"></p>
+    </section>
 
-  <div class="warning">
-    После внесения изменений нажмите «Скачать catalog.json» и замените файл в репозитории GitHub
-  </div>
+    <section id="admin-content" hidden>
+      <section class="panel">
+        <div class="toolbar">
+          <div>
+            <h2>Каталог</h2>
+            <p class="section-copy">Меняйте категории, остатки, карточки и фотографии товаров.</p>
+          </div>
+          <button type="button" onclick="createProduct()">Добавить товар</button>
+        </div>
+        <div class="grid" id="products"></div>
+      </section>
 
-  <table>
-    <thead>
-    <tr>
-      <th>ID</th>
-      <th>Название</th>
-      <th>Цена ₽</th>
-      <th>Описание</th>
-      <th>Ссылка на изображение</th>
-      <th>Остаток</th>
-      <th></th>
-    </tr>
-    </thead>
-    <tbody id="catalog-body"></tbody>
-  </table>
+      <section class="panel">
+        <div class="toolbar">
+          <div>
+            <h2>Последние заказы</h2>
+            <p class="section-copy">Текущая лента заказов из базы. Google Sheets продолжает работать отдельно.</p>
+          </div>
+        </div>
+        <div id="orders"></div>
+      </section>
+    </section>
+  </main>
 
-  <button class="add-btn" onclick="addNewItem()">+ Добавить новый товар</button>
-  <button class="save-btn" onclick="downloadCatalog()">Скачать обновлённый catalog.json</button>
-</div>
+  <script>
+    const productsEl = document.getElementById("products");
+    const ordersEl = document.getElementById("orders");
+    const loginPanel = document.getElementById("login-panel");
+    const adminContent = document.getElementById("admin-content");
+    const headerActions = document.getElementById("header-actions");
+    const loginMessage = document.getElementById("login-message");
 
-<script>
-  let catalog = [];
-
-  fetch('catalog.json')
-          .then(res => res.json())
-          .then(data => {
-            catalog = data;
-            renderTable();
-          })
-          .catch(err => {
-            console.error(err);
-            alert('Не удалось загрузить catalog.json');
-          });
-
-  function renderTable() {
-    const tbody = document.getElementById('catalog-body');
-    tbody.innerHTML = '';
-
-    catalog.forEach((item, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-      <td><input type="number" value="${item.id}" onchange="update(${index}, 'id', this.value)"></td>
-      <td><input type="text" value="${item.title}" onchange="update(${index}, 'title', this.value)"></td>
-      <td><input type="number" value="${item.price}" onchange="update(${index}, 'price', this.value)"></td>
-      <td><input type="text" value="${item.description}" onchange="update(${index}, 'description', this.value)"></td>
-      <td><input type="text" value="${item.image}" onchange="update(${index}, 'image', this.value)"></td>
-      <td><input type="number" value="${item.stock}" onchange="update(${index}, 'stock', this.value)"></td>
-      <td class="actions">
-        <button class="delete-btn" onclick="deleteItem(${index})">Удалить</button>
-      </td>
-    `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function update(index, field, value) {
-    if (['id', 'price', 'stock'].includes(field)) {
-      value = parseInt(value) || 0;
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
-    catalog[index][field] = value;
-  }
 
-  function deleteItem(index) {
-    if (!confirm('Удалить товар?')) return;
+    async function api(url, options = {}) {
+      const res = await fetch(url, {
+        credentials: "same-origin",
+        headers: options.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
+        ...options
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Ошибка запроса");
+      return data;
+    }
 
-    catalog.splice(index, 1);
-    catalog.forEach((item, i) => item.id = i + 1);
-    renderTable();
-  }
+    async function login() {
+      loginMessage.textContent = "";
+      try {
+        await api("/api/admin/login", {
+          method: "POST",
+          body: JSON.stringify({ password: document.getElementById("password").value })
+        });
+        await loadData();
+      } catch (error) {
+        loginMessage.textContent = error.message;
+      }
+    }
 
-  function addNewItem() {
-    const maxId = catalog.length ? Math.max(...catalog.map(i => i.id)) : 0;
-    catalog.push({
-      id: maxId + 1,
-      title: "Новый товар",
-      price: 0,
-      description: "Краткое описание",
-      image: "https://via.placeholder.com/400x300",
-      stock: 0
+    async function logout() {
+      await api("/api/admin/logout", { method: "POST" }).catch(() => {});
+      loginPanel.hidden = false;
+      adminContent.hidden = true;
+      headerActions.hidden = true;
+    }
+
+    async function loadData() {
+      const [products, orders] = await Promise.all([
+        api("/api/admin/products"),
+        api("/api/admin/orders")
+      ]);
+      loginPanel.hidden = true;
+      adminContent.hidden = false;
+      headerActions.hidden = false;
+      renderProducts(products);
+      renderOrders(orders);
+    }
+
+    function readProduct(card) {
+      return {
+        category: card.querySelector("[name='category']").value.trim(),
+        title: card.querySelector("[name='title']").value.trim(),
+        price: Number.parseInt(card.querySelector("[name='price']").value, 10) || 0,
+        description: card.querySelector("[name='description']").value.trim(),
+        image: card.querySelector("[name='image']").value.trim(),
+        stock: Number.parseInt(card.querySelector("[name='stock']").value, 10) || 0,
+        isActive: card.querySelector("[name='isActive']").checked
+      };
+    }
+
+    function renderProducts(products) {
+      productsEl.innerHTML = "";
+      if (!products.length) {
+        productsEl.innerHTML = '<div class="empty">Каталог пуст</div>';
+        return;
+      }
+
+      products.forEach(product => {
+        const card = document.createElement("article");
+        card.className = "product";
+        card.dataset.id = product.id;
+        card.innerHTML = `
+          <img src="${escapeHtml(product.image || "https://via.placeholder.com/400x300?text=Фото")}" alt="${escapeHtml(product.title)}">
+          <label>Категория <input name="category" list="category-options" value="${escapeHtml(product.category || "Без категории")}" placeholder="Например: Рыба, Ягоды, Консервы"></label>
+          <label>Название <input name="title" value="${escapeHtml(product.title)}"></label>
+          <div class="row">
+            <label>Цена, ₽ <input name="price" type="number" min="0" value="${product.price}"></label>
+            <label>Остаток <input name="stock" type="number" min="0" value="${product.stock}"></label>
+          </div>
+          <label>Описание <textarea name="description">${escapeHtml(product.description)}</textarea></label>
+          <label>Ссылка на фото <input name="image" value="${escapeHtml(product.image)}"></label>
+          <label>Загрузить фото <input name="upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+          <label class="check"><input name="isActive" type="checkbox" ${product.isActive ? "checked" : ""}> Показывать в каталоге</label>
+          <div class="actions">
+            <button type="button" onclick="saveProduct(this)">Сохранить</button>
+            <button type="button" class="danger" onclick="deleteProduct(this)">Скрыть</button>
+          </div>
+          <p class="message"></p>
+        `;
+        productsEl.appendChild(card);
+      });
+    }
+
+    async function uploadImage(card) {
+      const input = card.querySelector("[name='upload']");
+      if (!input.files.length) return card.querySelector("[name='image']").value.trim();
+
+      const formData = new FormData();
+      formData.append("image", input.files[0]);
+      const result = await api("/api/admin/uploads", { method: "POST", body: formData });
+      card.querySelector("[name='image']").value = result.url;
+      return result.url;
+    }
+
+    async function saveProduct(button) {
+      const card = button.closest(".product");
+      const message = card.querySelector(".message");
+      button.disabled = true;
+      message.textContent = "Сохраняем...";
+
+      try {
+        await uploadImage(card);
+        const product = readProduct(card);
+        const saved = await api(`/api/admin/products/${card.dataset.id}`, {
+          method: "PUT",
+          body: JSON.stringify(product)
+        });
+        card.querySelector("img").src = saved.image || "https://via.placeholder.com/400x300?text=Фото";
+        message.textContent = "Сохранено";
+      } catch (error) {
+        message.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function createProduct() {
+      await api("/api/admin/products", {
+        method: "POST",
+        body: JSON.stringify({
+          category: "Без категории",
+          title: "Новый товар",
+          price: 0,
+          description: "",
+          image: "",
+          stock: 0,
+          isActive: true
+        })
+      });
+      await loadData();
+    }
+
+    async function deleteProduct(button) {
+      if (!confirm("Скрыть товар из каталога?")) return;
+      const card = button.closest(".product");
+      await api(`/api/admin/products/${card.dataset.id}`, { method: "DELETE" });
+      await loadData();
+    }
+
+    function renderOrders(orders) {
+      if (!orders.length) {
+        ordersEl.innerHTML = '<div class="empty">Заказов пока нет</div>';
+        return;
+      }
+
+      ordersEl.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Заказ</th>
+              <th>Клиент</th>
+              <th>Товары</th>
+              <th>Получение</th>
+              <th>Итого</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(order => `
+              <tr>
+                <td>#${order.id}<br>${new Date(order.created_at).toLocaleString("ru-RU")}</td>
+                <td>${escapeHtml(order.customer_name)}<br>${escapeHtml(order.customer_phone)}${order.comment ? `<br>${escapeHtml(order.comment)}` : ""}</td>
+                <td>${order.items.map(item => `${escapeHtml(item.title)} x ${item.quantity}`).join("<br>")}</td>
+                <td>${escapeHtml(order.delivery_name)}<br>${Number(order.delivery_price).toLocaleString("ru-RU")} ₽</td>
+                <td>${Number(order.total).toLocaleString("ru-RU")} ₽</td>
+                <td>${escapeHtml(order.status)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    document.getElementById("password").addEventListener("keydown", event => {
+      if (event.key === "Enter") login();
     });
-    renderTable();
-  }
 
-  function downloadCatalog() {
-    const jsonStr = JSON.stringify(catalog, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "catalog.json";
-    document.body.appendChild(a);
-    a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    alert("Файл скачан!");
-  }
-</script>
+    loadData().catch(() => {
+      loginPanel.hidden = false;
+      adminContent.hidden = true;
+      headerActions.hidden = true;
+    });
+  </script>
+  <datalist id="category-options">
+    <option value="Рыба"></option>
+    <option value="Ягоды"></option>
+    <option value="Консервы"></option>
+    <option value="Десерты"></option>
+    <option value="Подарочные наборы"></option>
+    <option value="Соусы и закуски"></option>
+    <option value="Без категории"></option>
+  </datalist>
 </body>
 </html>

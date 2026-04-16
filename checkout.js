@@ -1,21 +1,23 @@
-const BOT_TOKEN = "8580777195:AAHCLZvYy58ybfNZlWfoN_L7GBzhtuRFbQI"; // ← Замените на свой!
-const CHAT_ID = "427675942";                                         // ← Замените на свой!
-
 const cartDiv = document.getElementById("cart");
 const totalDiv = document.getElementById("total");
+const submitButton = document.querySelector(".submit-btn");
 
 let catalogData = [];
 
-//  загружаем свежий каталог с сервера
-fetch("catalog.json?" + new Date().getTime())
-    .then(res => res.json())
+async function loadCatalog() {
+    const res = await fetch("/api/products");
+    if (!res.ok) throw new Error("API недоступен");
+    return await res.json();
+}
+
+loadCatalog()
     .then(data => {
         catalogData = data;
-        renderCart(); // Рендерим корзину после получения актуальных данных
+        renderCart();
     })
     .catch(err => {
-        console.error("Ошибка загрузки catalog.json:", err);
-        showToast("Не удалось загрузить данные о товарах ❌");
+        console.error("Ошибка загрузки каталога:", err);
+        showToast("Не удалось загрузить данные о товарах");
         catalogData = [];
         renderCart();
     });
@@ -60,37 +62,35 @@ function renderCart() {
     cart.forEach((item, index) => {
         const itemSum = item.qty * item.price;
         const catalogItem = catalogData.find(i => i.id === item.id);
-
-        // Информация о наличии берётся из свежего cD
         const stockInfo = catalogItem
             ? (catalogItem.stock > 0
-                ? ''
-                : `<small style="color:#ff6b9d; display:block; margin-top:4px; font-weight:600;">Нет в наличии</small>`)
-            : `<small style="color:#888;">Данные о наличии отсутствуют</small>`;
+                ? `<small class="cart-stock available">В наличии: ${catalogItem.stock}</small>`
+                : `<small class="cart-stock unavailable">Нет в наличии</small>`)
+            : `<small class="cart-stock">Данные о наличии отсутствуют</small>`;
 
         cartDiv.innerHTML += `
-      <div class="cart-item">
-        <div class="cart-info">
-          <h4>${item.title}${stockInfo}</h4>
-          <div class="cart-price">
-            ${item.price.toLocaleString()} ₽ × ${item.qty} = ${itemSum.toLocaleString()} ₽
-          </div>
-        </div>
+            <div class="cart-item">
+                <div class="cart-info">
+                    <h4>${item.title}${stockInfo}</h4>
+                    <div class="cart-price">
+                        ${item.price.toLocaleString("ru-RU")} ₽ x ${item.qty} = ${itemSum.toLocaleString("ru-RU")} ₽
+                    </div>
+                </div>
 
-        <div class="cart-actions">
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(${index}, -1)">−</button>
-            <span class="qty">${item.qty}</span>
-            <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
-          </div>
-          <button class="remove-btn" onclick="removeItem(${index})" title="Удалить">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `;
+                <div class="cart-actions">
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1); renderCart();">-</button>
+                        <span class="qty">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1); renderCart();">+</button>
+                    </div>
+                    <button class="remove-btn" onclick="removeItem(${index}); renderCart();" title="Удалить">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
     });
 
     const option = DELIVERY_OPTIONS[selectedOption];
@@ -98,14 +98,14 @@ function renderCart() {
     const total = subtotal + deliveryCost;
 
     totalDiv.innerHTML = `
-      <div style="margin-bottom:10px; font-size:16px; color:#555;">
-        Сумма товаров: ${subtotal.toLocaleString()} ₽
-      </div>
-      <div style="margin-bottom:12px; font-size:16px; color:#555;">
-        ${option.name}: ${deliveryCost.toLocaleString()} ₽
-        ${option.address ? `<br><small style="color:#666; font-size:14px;">${option.address}</small>` : ''}
-      </div>
-      <h3 style="margin-top:8px;">Итого: <strong>${total.toLocaleString()} ₽</strong></h3>
+        <div class="total-line">
+            Сумма товаров: ${subtotal.toLocaleString("ru-RU")} ₽
+        </div>
+        <div class="total-line">
+            ${option.name}: ${deliveryCost.toLocaleString("ru-RU")} ₽
+            ${option.address ? `<br><small>${option.address}</small>` : ""}
+        </div>
+        <h3>Итого: <strong>${total.toLocaleString("ru-RU")} ₽</strong></h3>
     `;
 }
 
@@ -113,81 +113,63 @@ function updateTotal() {
     renderCart();
 }
 
-// Обработчики выбора доставки
 document.querySelectorAll('input[name="delivery"]').forEach(radio => {
-    radio.addEventListener('change', function() {
+    radio.addEventListener("change", function() {
         selectedOption = this.value;
         updateTotal();
     });
 });
 
-function sendOrder() {
+async function sendOrder() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const comment = document.getElementById("comment").value.trim();
 
     if (!name || !phone) {
-        showToast("Заполните имя и телефон ⚠️");
+        showToast("Заполните имя и телефон");
         return;
     }
 
     if (cart.length === 0) {
-        showToast("Корзина пуста!");
+        showToast("Корзина пуста");
         return;
     }
 
-    const option = DELIVERY_OPTIONS[selectedOption];
-    const deliveryCost = option.price;
-    const deliveryText = option.address
-        ? `${option.name} (адрес: ${option.address})`
-        : option.name;
+    submitButton.disabled = true;
+    submitButton.textContent = "Отправляем...";
 
-    let message = "🛒 *Новый заказ!*\n\n";
-    let subtotal = 0;
-
-    cart.forEach(item => {
-        const itemSum = item.qty * item.price;
-        subtotal += itemSum;
-        message += `• ${item.title} × ${item.qty} — ${itemSum.toLocaleString()} ₽\n`;
-    });
-
-    message += `\nПолучение: ${deliveryText} — ${deliveryCost.toLocaleString()} ₽`;
-    message += `\n\n💰 *Итого: ${(subtotal + deliveryCost).toLocaleString()} ₽*`;
-    message += `\n\n👤 *Имя:* ${name}`;
-    message += `\n📞 *Телефон:* ${phone}`;
-    if (comment) message += `\n💬 *Комментарий:* ${comment}`;
-
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message,
-            parse_mode: "Markdown"
-        })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                showToast("Заказ отправлен! Спасибо ❤️");
-
-                localStorage.removeItem("cart");
-                cart = [];
-                saveCart(); // обновляем бейдж и т.д.
-
-                renderCart();
-                updateCartBadge();
-
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1800);
-            } else {
-                showToast("Ошибка отправки заказа ❌");
-            }
-        })
-        .catch(() => {
-            showToast("Ошибка соединения ❌");
+    try {
+        const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name,
+                phone,
+                comment,
+                delivery: selectedOption,
+                items: cart.map(item => ({ id: item.id, qty: item.qty }))
+            })
         });
-}
+        const data = await res.json().catch(() => ({}));
 
-// Первичный рендер (будет выполнен после загрузки catalogData)
+        if (!res.ok) {
+            throw new Error(data.error || "Ошибка отправки заказа");
+        }
+
+        showToast(`Заказ #${data.id} отправлен. Спасибо!`);
+        localStorage.removeItem("cart");
+        cart = [];
+        saveCart();
+        renderCart();
+        updateCartBadge();
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1800);
+    } catch (error) {
+        showToast(error.message || "Ошибка соединения");
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Отправить заказ";
+    }
+}
