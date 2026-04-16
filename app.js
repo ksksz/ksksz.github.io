@@ -91,9 +91,7 @@ loadStorefrontData()
         });
 
         const categories = [
-            ...categoryRecords
-                .filter(category => categoryMap.has(category.name))
-                .map(category => category.name),
+            ...categoryRecords.map(category => category.name),
             ...Array.from(categoryMap.keys()).filter(name => !categoryMeta.has(name)).sort((a, b) => a.localeCompare(b, "ru"))
         ];
 
@@ -221,12 +219,16 @@ loadStorefrontData()
                             <h3>${escapeHtml(category)}</h3>
                             <span>${sectionItems.length} ${sectionItems.length === 1 ? "позиция" : "позиций"}</span>
                         </div>
-                        <div class="catalog-grid">
-                            ${sectionItems.map(item => {
-                                const currentQty = cart.find(i => i.id === item.id)?.qty || 0;
-                                return buildProductCard(item, currentQty);
-                            }).join("")}
-                        </div>
+                        ${sectionItems.length ? `
+                            <div class="catalog-grid">
+                                ${sectionItems.map(item => {
+                                    const currentQty = cart.find(i => i.id === item.id)?.qty || 0;
+                                    return buildProductCard(item, currentQty);
+                                }).join("")}
+                            </div>
+                        ` : `
+                            <div class="catalog-empty">В этой категории пока нет товаров.</div>
+                        `}
                     </section>
                 `;
             }).join("");
