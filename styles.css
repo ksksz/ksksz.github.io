@@ -341,19 +341,16 @@ a {
 
 .stock {
     width: fit-content;
-    padding: 5px 9px;
-    border-radius: 999px;
+    padding: 0;
     font-size: 13px;
     font-weight: 700;
 }
 
 .stock.available {
-    background: rgba(47, 125, 76, 0.10);
     color: var(--green);
 }
 
 .stock.unavailable {
-    background: rgba(180, 35, 24, 0.10);
     color: var(--danger);
 }
 

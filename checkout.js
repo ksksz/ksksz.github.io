@@ -156,7 +156,7 @@ async function sendOrder() {
             throw new Error(data.error || "Ошибка отправки заказа");
         }
 
-        showToast(`Заказ #${data.id} отправлен. Спасибо!`);
+        showToast("Заказ отправлен. Спасибо!");
         localStorage.removeItem("cart");
         cart = [];
         saveCart();
